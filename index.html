@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Belajar Angka 0-20 dengan Suara</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            color: #444;
+            overflow-x: hidden;
+        }
+
+        h1 {
+            margin-top: 10px;
+            margin-bottom: 8px;
+            font-size: 2.2rem;
+            color: #d63384;
+            text-align: center;
+        }
+
+        .subtitle {
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+            color: #555;
+            text-align: center;
+        }
+
+        .hint {
+            background: rgba(255,255,255,0.6);
+            padding: 8px 18px;
+            border-radius: 25px;
+            font-size: 0.95rem;
+            color: #666;
+            margin-bottom: 25px;
+            backdrop-filter: blur(5px);
+        }
+
+        .numbers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+            gap: 18px;
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .number-btn {
+            aspect-ratio: 1;
+            font-size: 2.2rem;
+            font-weight: bold;
+            border: none;
+            border-radius: 24px;
+            background: #ffffff;
+            color: #d63384;
+            cursor: pointer;
+            box-shadow: 0 10px 0 #ffb7c5,
+                        0 15px 25px rgba(214, 51, 132, 0.2);
+
+            transition: all 0.1s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .number-btn:hover {
+            transform: translateY(-4px);
+        }
+
+        .number-btn:active,
+        .number-btn.active {
+            transform: translateY(10px);
+            box-shadow: 0 0 0 #ffb7c5,
+                        0 5px 10px rgba(214, 51, 132, 0.15);
+
+            background: #fff0f5;
+        }
+
+        .number-btn.speaking {
+            animation: pulse 0.6s infinite;
+        }
+
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.08);
+            }
+
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        .status {
+            margin-top: 30px;
+            height: 35px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #d63384;
+            opacity: 0;
+            transition: opacity 0.3s;
+            text-align: center;
+        }
+
+        .status.show {
+            opacity: 1;
+        }
+
+        .big-number {
+            margin-top: 25px;
+            font-size: 8rem;
+            font-weight: bold;
+            color: #d63384;
+            text-shadow: 0 10px 20px rgba(214, 51, 132, 0.2);
+            transition: all 0.3s;
+        }
+
+        .floating-shape {
+            position: fixed;
+            border-radius: 50%;
+            opacity: 0.12;
+            pointer-events: none;
+            animation: floatUp linear infinite;
+        }
+
+        @keyframes floatUp {
+            0% {
+                transform: translateY(110vh) rotate(0deg);
+            }
+
+            100% {
+                transform: translateY(-20vh) rotate(360deg);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .numbers-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 14px;
+            }
+
+            .number-btn {
+                font-size: 1.8rem;
+                border-radius: 20px;
+            }
+
+            h1 {
+                font-size: 1.7rem;
+            }
+
+            .big-number {
+                font-size: 5rem;
+            }
+        }
+
+        @media (max-width: 350px) {
+            .numbers-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>🔢 Belajar Angka Berbicara</h1>
+
+    <p class="subtitle">
+        Tekan angka untuk mendengar cara membaca dalam bahasa Indonesia
+    </p>
+
+    <div class="hint">
+        💡 Kamu juga bisa menekan tombol angka 0-9 di keyboard
+    </div>
+
+    <div class="big-number" id="bigNumber">0</div>
+
+    <div class="numbers-grid" id="numbersGrid"></div>
+
+    <div class="status" id="status">
+        🔊 Memainkan suara...
+    </div>
+
+    <script>
+
+        // DATA ANGKA
+        const numberData = [
+            { display: '0', word: 'nol' },
+            { display: '1', word: 'satu' },
+            { display: '2', word: 'dua' },
+            { display: '3', word: 'tiga' },
+            { display: '4', word: 'empat' },
+            { display: '5', word: 'lima' },
+            { display: '6', word: 'enam' },
+            { display: '7', word: 'tujuh' },
+            { display: '8', word: 'delapan' },
+            { display: '9', word: 'sembilan' },
+            { display: '10', word: 'sepuluh' },
+            { display: '11', word: 'sebelas' },
+            { display: '12', word: 'dua belas' },
+            { display: '13', word: 'tiga belas' },
+            { display: '14', word: 'empat belas' },
+            { display: '15', word: 'lima belas' },
+            { display: '16', word: 'enam belas' },
+            { display: '17', word: 'tujuh belas' },
+            { display: '18', word: 'delapan belas' },
+            { display: '19', word: 'sembilan belas' },
+            { display: '20', word: 'dua puluh' }
+        ];
+
+        const colors = [
+            '#FF6B6B',
+            '#4ECDC4',
+            '#FFD93D',
+            '#6BCB77',
+            '#4D96FF',
+            '#FF8E3C',
+            '#9D4EDD'
+        ];
+
+        const numbersGrid = document.getElementById('numbersGrid');
+        const status = document.getElementById('status');
+        const bigNumber = document.getElementById('bigNumber');
+
+        // BUAT TOMBOL ANGKA
+        numberData.forEach((item, index) => {
+
+            const button = document.createElement('button');
+
+            button.className = 'number-btn';
+            button.textContent = item.display;
+
+            button.style.color = colors[index % colors.length];
+
+            button.addEventListener('click', () => {
+                playNumber(item, button);
+            });
+
+            numbersGrid.appendChild(button);
+        });
+
+        // SUARA
+        function playNumber(item, button) {
+
+            // reset active
+            document.querySelectorAll('.number-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.remove('speaking');
+            });
+
+            button.classList.add('active');
+            button.classList.add('speaking');
+
+            // tampil besar
+            bigNumber.textContent = item.display;
+            bigNumber.style.color = button.style.color;
+
+            // tampil status
+            status.textContent = `🔊 ${item.word}`;
+            status.classList.add('show');
+
+            // speech
+            if ('speechSynthesis' in window) {
+
+                speechSynthesis.cancel();
+
+                const utterance = new SpeechSynthesisUtterance(item.word);
+
+                utterance.lang = 'id-ID';
+                utterance.rate = 0.7;
+                utterance.pitch = 1.3;
+                utterance.volume = 1;
+
+                speechSynthesis.speak(utterance);
+
+                utterance.onend = () => {
+                    button.classList.remove('speaking');
+                };
+            }
+
+            // sembunyikan status
+            setTimeout(() => {
+                status.classList.remove('show');
+            }, 1500);
+        }
+
+        // KEYBOARD SUPPORT
+        document.addEventListener('keydown', (e) => {
+
+            const key = e.key;
+
+            const item = numberData.find(n => n.display === key);
+
+            if (item) {
+
+                const buttons = document.querySelectorAll('.number-btn');
+
+                buttons.forEach(btn => {
+
+                    if (btn.textContent === key) {
+                        playNumber(item, btn);
+                    }
+
+                });
+            }
+        });
+
+        // BACKGROUND SHAPES
+        function createShapes() {
+
+            for(let i = 0; i < 20; i++) {
+
+                const shape = document.createElement('div');
+
+                shape.className = 'floating-shape';
+
+                const size = 40 + Math.random() * 100;
+
+                shape.style.width = `${size}px`;
+                shape.style.height = `${size}px`;
+
+                shape.style.left = `${Math.random() * 100}%`;
+
+                shape.style.background =
+                    colors[Math.floor(Math.random() * colors.length)];
+
+                shape.style.animationDuration =
+                    `${10 + Math.random() * 15}s`;
+
+                document.body.appendChild(shape);
+            }
+        }
+
+        createShapes();
+
+    </script>
+
+</body>
+</html>
